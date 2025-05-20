@@ -12,8 +12,11 @@ import java.util.concurrent.TimeUnit;
 
 
 
+import java.util.List;
 
 
+//TODO //1. Create collision detection system using components that make boxes taking velocity into account
+//TODO //2. Create Collisions that take angel mass and velocity into account
 public class myFrame extends Frame{
 
 
@@ -79,13 +82,14 @@ public class myFrame extends Frame{
         ExecutorService executorService = Executors.newSingleThreadExecutor();
         executorService.execute(() ->  PlayerLogic());
         executorService.shutdown();
+        UpdateObject();
         for(GameObject gameObject : gameObjects){
             try {
                 FindCollidingObject(gameObject);
             } catch (InterruptedException ex) {
             }
         }
-        UpdateObject();
+
         RenderGame(g);
         
 
@@ -93,36 +97,30 @@ public class myFrame extends Frame{
 
     public void FindCollidingObject(GameObject gameObject) throws InterruptedException{
         for(GameObject gameObject2 : gameObjects){  
-            if(gameObject.objectTag.equals(gameObject2.objectTag)){
-                continue;
-            }
             if(gameObject.objectTag.equals("Border") || gameObject2.objectTag.equals("Border")){
-                if(gameObject.position.x < gameObject2.position.x + gameObject2.size.x &&
-                    gameObject.position.x + gameObject.size.x > gameObject2.position.x &&
-                    gameObject.position.y < gameObject2.position.y + gameObject2.size.y &&
-                    gameObject.position.y + gameObject.size.y > gameObject2.position.y){
+                if(gameObject.position.x +gameObject.size.x < gameObject2.position.x + gameObject2.size.x && gameObject.position.x + gameObject.size.x > gameObject2.position.x + gameObject.size.x &&
+                    gameObject.position.y + gameObject.size.y< gameObject2.position.y + gameObject2.size.y && gameObject.position.y + gameObject.size.y > gameObject2.position.y + gameObject.size.y){
                       //  System.out.println("INSIDE BORDER" + gameObject.objectName + " " + gameObject2.objectName);
                     }  
                 else{
-                    System.out.println("ESCAPED!!!" + gameObject.objectName + " " + gameObject2.objectName);
+                   // System.out.println("ESCAPED!!!" + gameObject.objectName + " " + gameObject2.objectName);
                     gameObject.setVelocity(new GameVector(-gameObject.getVelocity().x,-gameObject.getVelocity().y));
                 }
                 
             }
-            else if(gameObject.position.x < gameObject2.position.x + gameObject2.size.x &&
-                gameObject.position.x + gameObject.size.x > gameObject2.position.x &&
-                gameObject.position.y < gameObject2.position.y + gameObject2.size.y &&
-                gameObject.position.y + gameObject.size.y > gameObject2.position.y){
-                    System.out.println("COLLISION DETECTED" + gameObject.objectName + " " + gameObject2.objectName);
+            else if(gameObject.position.x +gameObject.size.x < gameObject2.position.x + gameObject2.size.x && gameObject.position.x + gameObject.size.x > gameObject2.position.x + gameObject.size.x &&
+                    gameObject.position.y + gameObject.size.y < gameObject2.position.y + gameObject2.size.y && gameObject.position.y + gameObject.size.y > gameObject2.position.y + gameObject.size.y){
+                   
                     if(gameObject.ObjectCollided(gameObject2) == false)
                     {
                         GameVector newVelocity = gameObject.getVelocity();
                         GameVector newVelocity2 = gameObject2.getVelocity();
+                        System.out.println("COLLISION DETECTED" + gameObject.objectName + " " + gameObject2.objectName);
                         gameObject.setVelocity(new GameVector(-gameObject.getVelocity().x,-gameObject.getVelocity().y));
                         gameObject2.setVelocity(new GameVector(-gameObject2.getVelocity().x,-gameObject2.getVelocity().y));
                     }
                     else{
-                        System.out.println("COLLISION DETECTED BUT ALREADY COLLIDED");
+                        //System.out.println("COLLISION DETECTED BUT ALREADY COLLIDED");
                     }
           
                 }  
@@ -171,7 +169,8 @@ public class myFrame extends Frame{
                    
                     break;
                 default:
-                    throw new AssertionError();
+                    g.setColor(Color.GREEN);
+                    break;
             }
             g.draw3DRect((int)gameObject.position.x,(int)gameObject.position.y,(int)gameObject.size.x,(int)gameObject.size.y, true);
         }   
