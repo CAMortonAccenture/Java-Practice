@@ -2,17 +2,10 @@ import java.awt.Color;
 import java.awt.Frame;
 import java.awt.Graphics;
 import java.awt.event.KeyEvent;
-import java.awt.event.WindowAdapter; 
+import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent; 
 import java.util.ArrayList;
 import java.util.Random;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
-
-
-
-import java.util.List;
 
 
 //TODO //1. Create collision detection system using components that make boxes taking velocity into account
@@ -60,12 +53,12 @@ public class myFrame extends Frame{
  
         gameObjects = new ArrayList<GameObject>();
         GameObject player = new GameObject(new GameVector(30,55), new GameVector(0,0), new GameVector(10,10), "Player", "Player");
-        for (int i = 0; i < 10; i++){
+        player.AddColliderComponent(new ColliderComponent("ColliderComponent"));
+        for (int i = 0; i < 1; i++){
             MakeEnemy();
         }
-        GameObject enemy = new GameObject(new GameVector(50,50), new GameVector(0,0), new GameVector(15,15), "Enemy", "Enemy");
-        gameObjects.add(enemy);
         GameObject border = new GameObject(new GameVector(25,50), new GameVector(0,0), new GameVector(625,625), "Border", "Border");
+        border.AddColliderComponent(new ColliderComponent("ColliderComponent"));
         gameObjects.add(border);
         gameObjects.add(player);
     }
@@ -73,15 +66,15 @@ public class myFrame extends Frame{
 
     public void MakeEnemy(){
         Random r = new Random();
-        GameObject enemy = new GameObject(new GameVector(50,50), new GameVector(r.nextDouble()*(4 - 0) + 0,r.nextDouble()*(4 - 0) + 0), new GameVector(15,15), "Enemy", "Enemy");
+        GameObject enemy = new GameObject(new GameVector(r.nextDouble()*(700 - 0) + 0,r.nextDouble()*(700 - 0) + 0), new GameVector(r.nextDouble()*(0 - 0) + 0,r.nextDouble()*(0 - 0) + 0), new GameVector(15,15), "Enemy", "Enemy");
+        enemy.AddColliderComponent(new ColliderComponent("ColliderComponent"));
         gameObjects.add(enemy);
     }
 
 
     public void Update(Graphics g){
-        ExecutorService executorService = Executors.newSingleThreadExecutor();
-        executorService.execute(() ->  PlayerLogic());
-        executorService.shutdown();
+       
+        PlayerLogic();
         UpdateObject();
         for(GameObject gameObject : gameObjects){
             try {
@@ -96,34 +89,16 @@ public class myFrame extends Frame{
     }
 
     public void FindCollidingObject(GameObject gameObject) throws InterruptedException{
-        for(GameObject gameObject2 : gameObjects){  
-            if(gameObject.objectTag.equals("Border") || gameObject2.objectTag.equals("Border")){
-                if(gameObject.position.x +gameObject.size.x < gameObject2.position.x + gameObject2.size.x && gameObject.position.x + gameObject.size.x > gameObject2.position.x + gameObject.size.x &&
-                    gameObject.position.y + gameObject.size.y< gameObject2.position.y + gameObject2.size.y && gameObject.position.y + gameObject.size.y > gameObject2.position.y + gameObject.size.y){
-                      //  System.out.println("INSIDE BORDER" + gameObject.objectName + " " + gameObject2.objectName);
-                    }  
-                else{
-                   // System.out.println("ESCAPED!!!" + gameObject.objectName + " " + gameObject2.objectName);
-                    gameObject.setVelocity(new GameVector(-gameObject.getVelocity().x,-gameObject.getVelocity().y));
-                }
-                
+        for(GameObject gameObject2 : gameObjects){
+            if(!gameObject.objectTag.equals("Border") && !gameObject2.objectTag.equals("Border")){
+                if(gameObject.Collides(gameObject2)){ 
+                    System.out.println("Collision Detected between " + gameObject.objectName + " and " + gameObject2.objectName);
+                    System.out.println("Time" + System.currentTimeMillis());
+                    System.out.println("\033[H\033[2J");
+                    System.out.flush();
+               }
             }
-            else if(gameObject.position.x +gameObject.size.x < gameObject2.position.x + gameObject2.size.x && gameObject.position.x + gameObject.size.x > gameObject2.position.x + gameObject.size.x &&
-                    gameObject.position.y + gameObject.size.y < gameObject2.position.y + gameObject2.size.y && gameObject.position.y + gameObject.size.y > gameObject2.position.y + gameObject.size.y){
-                   
-                    if(gameObject.ObjectCollided(gameObject2) == false)
-                    {
-                        GameVector newVelocity = gameObject.getVelocity();
-                        GameVector newVelocity2 = gameObject2.getVelocity();
-                        System.out.println("COLLISION DETECTED" + gameObject.objectName + " " + gameObject2.objectName);
-                        gameObject.setVelocity(new GameVector(-gameObject.getVelocity().x,-gameObject.getVelocity().y));
-                        gameObject2.setVelocity(new GameVector(-gameObject2.getVelocity().x,-gameObject2.getVelocity().y));
-                    }
-                    else{
-                        //System.out.println("COLLISION DETECTED BUT ALREADY COLLIDED");
-                    }
           
-                }  
         }
     }
 
@@ -157,6 +132,20 @@ public class myFrame extends Frame{
         for(GameObject gameObject : gameObjects){
            // System.out.println(gameObject.objectName);
           //  System.out.println(gameObject.position.x + " " + gameObject.position.y);
+            //top left = 0
+          g.setColor(Color.GREEN);
+          g.draw3DRect((int) gameObject.colliderComponent.colliderVerts[0].x,  (int)gameObject.colliderComponent.colliderVerts[0].y, 1, 1, true);
+                //bottom left = 1
+          g.setColor(Color.RED);
+          g.draw3DRect((int) gameObject.colliderComponent.colliderVerts[1].x,  (int)gameObject.colliderComponent.colliderVerts[1].y, 1, 1, true);
+           //bottom right = 2  
+          g.setColor(Color.BLUE);
+           
+          g.draw3DRect((int) gameObject.colliderComponent.colliderVerts[2].x,  (int)gameObject.colliderComponent.colliderVerts[2].y, 1, 1, true);
+           //top right = 3  
+          g.setColor(Color.YELLOW);
+           
+          g.draw3DRect((int) gameObject.colliderComponent.colliderVerts[3].x,  (int)gameObject.colliderComponent.colliderVerts[3].y, 1, 1, true);
             switch (gameObject.objectTag) {
                 case "Player":
                     g.setColor(Color.RED);
@@ -172,7 +161,8 @@ public class myFrame extends Frame{
                     g.setColor(Color.GREEN);
                     break;
             }
-            g.draw3DRect((int)gameObject.position.x,(int)gameObject.position.y,(int)gameObject.size.x,(int)gameObject.size.y, true);
+          
+           // g.draw3DRect((int)gameObject.position.x,(int)gameObject.position.y,(int)gameObject.size.x,(int)gameObject.size.y, true);
         }   
     }
 
